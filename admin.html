@@ -163,12 +163,12 @@
   }
 
   // ---------- вхід ----------
-  // Логін без «@» перетворюється на службовий email: «мама» → mama@ok-cake.local
+  // Логін без «@» перетворюється на службовий email: «мама» → mama@123.com
   const TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'ie', ж: 'zh', з: 'z', и: 'y', і: 'i', ї: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'shch', ь: '', ю: 'iu', я: 'ia', '\'': '' };
   function loginToEmail(login) {
     login = login.trim().toLowerCase();
     if (login.includes('@')) return login;
-    return [...login].map(c => TRANSLIT[c] ?? c).join('') + '@ok-cake.local';
+    return [...login].map(c => TRANSLIT[c] ?? c).join('') + '@123.com';
   }
   async function boot() {
     const { data: { session } } = await db.auth.getSession();
