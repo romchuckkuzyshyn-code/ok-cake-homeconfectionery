@@ -153,9 +153,26 @@
     display: flex; justify-content: center; gap: 6px;
     pointer-events: none;
   }
-  .dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  .dots span { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.55); cursor: pointer; pointer-events: auto; box-shadow: 0 0 3px rgba(0,0,0,.35); }
   .dots span.on { background: #fff; }
   .wrap { position: relative; }
+  .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px; border: 0; border-radius: 50%;
+    background: rgba(255,255,255,.85); color: #3b2a24;
+    font-size: 22px; line-height: 38px; padding: 0; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    transition: opacity .2s;
+  }
+  .nav-btn.prev { left: 10px; }
+  .nav-btn.next { right: 10px; }
+  .nav-btn[disabled] { opacity: 0; pointer-events: none; }
+  .count {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600;
+    padding: 3px 9px; border-radius: 999px; pointer-events: none;
+  }
+  .lightbox .nav-btn { position: fixed; }
 
   .body { padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
   .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
@@ -214,7 +231,11 @@
 
 <footer>ok cake homeconfectionery · Львів</footer>
 
-<div class="lightbox" id="lightbox" hidden><img alt=""></div>
+<div class="lightbox" id="lightbox" hidden>
+  <img alt="">
+  <button class="nav-btn prev" aria-label="Попереднє фото">‹</button>
+  <button class="nav-btn next" aria-label="Наступне фото">›</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -226,10 +247,14 @@
     const photos = d.photos.length
       ? d.photos.map(p => `<img src="${p}" alt="${esc(d.name)}" loading="lazy">`).join('')
       : '<span class="empty">фото незабаром</span>';
-    const dots = d.photos.length > 1
-      ? `<div class="dots">${d.photos.map((_, i) => `<span${i ? '' : ' class="on"'}></span>`).join('')}</div>` : '';
+    const many = d.photos.length > 1;
+    const nav = many
+      ? `<div class="dots">${d.photos.map((_, i) => `<span data-i="${i}"${i ? '' : ' class="on"'}></span>`).join('')}</div>
+         <span class="count">1 / ${d.photos.length}</span>
+         <button class="nav-btn prev" aria-label="Попереднє фото" disabled>‹</button>
+         <button class="nav-btn next" aria-label="Наступне фото">›</button>` : '';
     return `<article class="card">
-      <div class="wrap"><div class="photos">${photos}</div>${dots}</div>
+      <div class="wrap"><div class="photos">${photos}</div>${nav}</div>
       <div class="body">
         <div class="top"><h3>${esc(d.name)}</h3><span class="price">${esc(d.price)}</span></div>
         ${d.size ? `<p class="size">${esc(d.size)}</p>` : ''}
@@ -262,13 +287,22 @@
     initDots();
   }
 
-  // гортання фото в картці: оновлюємо крапки
+  // гортання фото в картці: стрілки, крапки й лічильник
   function initDots() { document.querySelectorAll('.photos').forEach(el => {
-    const dots = el.parentElement.querySelectorAll('.dots span');
+    const wrap = el.parentElement;
+    const dots = wrap.querySelectorAll('.dots span');
     if (!dots.length) return;
+    const go = i => el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
+    const cur = () => Math.round(el.scrollLeft / el.clientWidth);
+    wrap.querySelector('.prev').addEventListener('click', () => go(cur() - 1));
+    wrap.querySelector('.next').addEventListener('click', () => go(cur() + 1));
+    dots.forEach(d => d.addEventListener('click', () => go(+d.dataset.i)));
     el.addEventListener('scroll', () => {
-      const i = Math.round(el.scrollLeft / el.clientWidth);
+      const i = cur();
       dots.forEach((d, j) => d.classList.toggle('on', i === j));
+      wrap.querySelector('.count').textContent = `${i + 1} / ${dots.length}`;
+      wrap.querySelector('.prev').disabled = i === 0;
+      wrap.querySelector('.next').disabled = i === dots.length - 1;
     }, { passive: true });
   }); }
 
@@ -289,11 +323,29 @@
 
   // збільшення фото
   const lb = document.getElementById('lightbox');
+  const lbImg = lb.querySelector('img');
+  let lbList = [], lbIdx = 0;
+  function lbShow(i) {
+    lbIdx = (i + lbList.length) % lbList.length;
+    lbImg.src = lbList[lbIdx];
+    lb.querySelectorAll('.nav-btn').forEach(b => b.hidden = lbList.length < 2);
+  }
+  lb.querySelector('.prev').addEventListener('click', e => { e.stopPropagation(); lbShow(lbIdx - 1); });
+  lb.querySelector('.next').addEventListener('click', e => { e.stopPropagation(); lbShow(lbIdx + 1); });
   document.addEventListener('click', e => {
-    if (e.target.matches('.photos img')) { lb.querySelector('img').src = e.target.src; lb.hidden = false; }
-    else if (e.target.closest('#lightbox')) lb.hidden = true;
+    if (e.target.matches('.photos img')) {
+      const imgs = [...e.target.parentElement.querySelectorAll('img')];
+      lbList = imgs.map(i => i.src);
+      lbShow(imgs.indexOf(e.target));
+      lb.hidden = false;
+    } else if (e.target.closest('#lightbox')) lb.hidden = true;
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.hidden = true; });
+  document.addEventListener('keydown', e => {
+    if (lb.hidden) return;
+    if (e.key === 'Escape') lb.hidden = true;
+    if (e.key === 'ArrowLeft') lbShow(lbIdx - 1);
+    if (e.key === 'ArrowRight') lbShow(lbIdx + 1);
+  });
 </script>
 </body>
 </html>

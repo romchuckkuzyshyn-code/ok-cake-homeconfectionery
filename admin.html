@@ -119,7 +119,7 @@
 <div id="login" hidden>
   <h1>ok cake · адмінка</h1>
   <form id="login-form">
-    <input type="email" id="email" placeholder="Email" autocomplete="username" required>
+    <input type="text" id="email" placeholder="Логін" autocomplete="username" autocapitalize="none" required>
     <input type="password" id="password" placeholder="Пароль" autocomplete="current-password" required>
     <button class="btn primary" type="submit">Увійти</button>
     <div class="msg" id="login-msg"></div>
@@ -163,6 +163,13 @@
   }
 
   // ---------- вхід ----------
+  // Логін без «@» перетворюється на службовий email: «мама» → mama@ok-cake.local
+  const TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'ie', ж: 'zh', з: 'z', и: 'y', і: 'i', ї: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'shch', ь: '', ю: 'iu', я: 'ia', '\'': '' };
+  function loginToEmail(login) {
+    login = login.trim().toLowerCase();
+    if (login.includes('@')) return login;
+    return [...login].map(c => TRANSLIT[c] ?? c).join('') + '@ok-cake.local';
+  }
   async function boot() {
     const { data: { session } } = await db.auth.getSession();
     $('#login').hidden = !!session;
@@ -173,8 +180,8 @@
   $('#login-form').addEventListener('submit', async e => {
     e.preventDefault();
     $('#login-msg').textContent = '';
-    const { error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
-    if (error) $('#login-msg').textContent = 'Невірний email або пароль';
+    const { error } = await db.auth.signInWithPassword({ email: loginToEmail($('#email').value), password: $('#password').value });
+    if (error) $('#login-msg').textContent = 'Невірний логін або пароль';
     else boot();
   });
   $('#logout').addEventListener('click', async () => { await db.auth.signOut(); boot(); });
