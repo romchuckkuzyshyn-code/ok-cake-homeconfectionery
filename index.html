@@ -292,18 +292,24 @@
     const wrap = el.parentElement;
     const dots = wrap.querySelectorAll('.dots span');
     if (!dots.length) return;
-    const go = i => el.scrollTo({ left: i * el.clientWidth, behavior: 'smooth' });
-    const cur = () => Math.round(el.scrollLeft / el.clientWidth);
-    wrap.querySelector('.prev').addEventListener('click', () => go(cur() - 1));
-    wrap.querySelector('.next').addEventListener('click', () => go(cur() + 1));
+    let idx = 0;
+    const sync = i => {
+      idx = Math.max(0, Math.min(dots.length - 1, i));
+      dots.forEach((d, j) => d.classList.toggle('on', idx === j));
+      wrap.querySelector('.count').textContent = `${idx + 1} / ${dots.length}`;
+      wrap.querySelector('.prev').disabled = idx === 0;
+      wrap.querySelector('.next').disabled = idx === dots.length - 1;
+    };
+    const go = i => {
+      sync(i);
+      el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
+    };
+    wrap.querySelector('.prev').addEventListener('click', () => go(idx - 1));
+    wrap.querySelector('.next').addEventListener('click', () => go(idx + 1));
     dots.forEach(d => d.addEventListener('click', () => go(+d.dataset.i)));
-    el.addEventListener('scroll', () => {
-      const i = cur();
-      dots.forEach((d, j) => d.classList.toggle('on', i === j));
-      wrap.querySelector('.count').textContent = `${i + 1} / ${dots.length}`;
-      wrap.querySelector('.prev').disabled = i === 0;
-      wrap.querySelector('.next').disabled = i === dots.length - 1;
-    }, { passive: true });
+    // свайп пальцем на телефоні
+    el.addEventListener('scrollend', () => sync(Math.round(el.scrollLeft / el.clientWidth)));
+    el.addEventListener('touchend', () => setTimeout(() => sync(Math.round(el.scrollLeft / el.clientWidth)), 400), { passive: true });
   }); }
 
   load().then(render);
