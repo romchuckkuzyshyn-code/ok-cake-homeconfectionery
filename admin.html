@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>ok cake · адмінка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbf6f1;
+    --surface: #ffffff;
+    --ink: #3b2a24;
+    --muted: #8a7469;
+    --line: #eadfd6;
+    --accent: #c4876b;
+    --accent-ink: #ffffff;
+    --chip: #f4e9e1;
+    --danger: #b9473b;
+    --ok: #3f8a5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1d1714; --surface: #2a211d; --ink: #f3e8e1; --muted: #b49d91;
+      --line: #3d312b; --accent: #d99c7f; --accent-ink: #1d1714; --chip: #382c26;
+      --danger: #e07a6e; --ok: #74c08f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1d1714; --surface: #2a211d; --ink: #f3e8e1; --muted: #b49d91;
+    --line: #3d312b; --accent: #d99c7f; --accent-ink: #1d1714; --chip: #382c26;
+    --danger: #e07a6e; --ok: #74c08f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.5 "Manrope", system-ui, sans-serif; }
+  h1, h2 { font-family: "Cormorant Garamond", serif; margin: 0; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+
+  .btn {
+    border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer;
+    background: var(--chip); font-weight: 600;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); }
+  .btn.danger { background: transparent; color: var(--danger); }
+  .btn:disabled { opacity: .5; cursor: default; }
+
+  /* вхід */
+  #login { max-width: 360px; margin: 12vh auto 0; padding: 16px; text-align: center; }
+  #login h1 { font-size: 34px; margin-bottom: 18px; }
+  #login form { display: grid; gap: 10px; }
+  .msg { min-height: 1.5em; font-size: 14px; color: var(--danger); }
+
+  input[type=text], input[type=email], input[type=password], textarea {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  textarea { resize: vertical; min-height: 70px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; }
+  header h1 { font-size: 28px; }
+  .tabs { display: flex; gap: 8px; margin: 8px 0 16px; position: sticky; top: 0; background: var(--bg); padding: 8px 0; z-index: 5; }
+  .tabs button { flex: 1; }
+  .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+
+  .item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .item > summary {
+    list-style: none; display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; cursor: pointer;
+  }
+  .item > summary::-webkit-details-marker { display: none; }
+  .thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; background: var(--chip); flex: none; }
+  .sum-name { flex: 1; font-weight: 600; line-height: 1.25; }
+  .sum-name small { display: block; color: var(--muted); font-weight: 500; }
+  .hidden-badge { font-size: 12px; background: var(--chip); color: var(--muted); padding: 2px 8px; border-radius: 999px; }
+  .order { display: flex; flex-direction: column; gap: 2px; }
+  .order button { padding: 2px 10px; border-radius: 8px; line-height: 1.2; }
+
+  .form { padding: 4px 14px 16px; display: grid; gap: 12px; border-top: 1px solid var(--line); }
+  .form label { display: grid; gap: 4px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+  .check { display: flex !important; align-items: center; gap: 8px; color: var(--ink) !important; }
+
+  .photos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ph { position: relative; width: 96px; height: 96px; }
+  .ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .ph button {
+    position: absolute; border: 0; border-radius: 50%; width: 26px; height: 26px;
+    background: rgba(0,0,0,.6); color: #fff; cursor: pointer; font-size: 14px; line-height: 26px; padding: 0;
+  }
+  .ph .del { top: 4px; right: 4px; }
+  .ph .first { bottom: 4px; left: 4px; width: auto; border-radius: 8px; padding: 0 6px; font-size: 11px; }
+  .add-photo {
+    width: 96px; height: 96px; border: 2px dashed var(--line); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    color: var(--muted); font-size: 13px; cursor: pointer;
+  }
+  .add-photo input { display: none; }
+  .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .actions .status { font-size: 14px; color: var(--ok); }
+  .add-new { width: 100%; padding: 14px; margin-top: 4px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px;
+    font-size: 14px; z-index: 20; max-width: calc(100% - 32px);
+  }
+  .toast[hidden] { display: none; }
+</style>
+</head>
+<body>
+
+<div id="login" hidden>
+  <h1>ok cake · адмінка</h1>
+  <form id="login-form">
+    <input type="email" id="email" placeholder="Email" autocomplete="username" required>
+    <input type="password" id="password" placeholder="Пароль" autocomplete="current-password" required>
+    <button class="btn primary" type="submit">Увійти</button>
+    <div class="msg" id="login-msg"></div>
+  </form>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <header>
+    <h1>ok cake · адмінка</h1>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="./" target="_blank" style="text-decoration:none">Сайт</a>
+      <button class="btn" id="logout">Вийти</button>
+    </div>
+  </header>
+  <div class="tabs">
+    <button class="btn" data-cat="candy" aria-selected="true">Кенді бар</button>
+    <button class="btn" data-cat="cakes" aria-selected="false">Торти</button>
+  </div>
+  <div id="list"></div>
+  <button class="btn add-new" id="add">+ Додати десерт</button>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+  const db = SUPABASE_URL ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  const BUCKET = 'photos';
+  let rows = [];
+  let cat = 'candy';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  function toast(text) {
+    const t = $('#toast');
+    t.textContent = text;
+    t.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => t.hidden = true, 2500);
+  }
+
+  // ---------- вхід ----------
+  async function boot() {
+    const { data: { session } } = await db.auth.getSession();
+    $('#login').hidden = !!session;
+    $('#app').hidden = !session;
+    if (session) await loadRows();
+  }
+
+  $('#login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    $('#login-msg').textContent = '';
+    const { error } = await db.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+    if (error) $('#login-msg').textContent = 'Невірний email або пароль';
+    else boot();
+  });
+  $('#logout').addEventListener('click', async () => { await db.auth.signOut(); boot(); });
+
+  // ---------- дані ----------
+  async function loadRows() {
+    const { data, error } = await db.from('desserts').select('*').order('sort');
+    if (error) { toast('Помилка завантаження: ' + error.message); return; }
+    rows = data;
+    render();
+  }
+
+  function render() {
+    const list = rows.filter(r => r.category === cat);
+    $('#list').innerHTML = list.map(r => itemHtml(r)).join('') || '<p style="color:var(--muted)">Тут поки порожньо.</p>';
+  }
+
+  function itemHtml(r) {
+    const photo = (r.photos || [])[0];
+    return `<details class="item" data-id="${r.id}">
+      <summary>
+        ${photo ? `<img class="thumb" src="${esc(photo)}" alt="">` : '<span class="thumb"></span>'}
+        <span class="sum-name">${esc(r.name) || 'Новий десерт'}<small>${esc(r.price)}</small></span>
+        ${r.hidden ? '<span class="hidden-badge">приховано</span>' : ''}
+        <span class="order">
+          <button class="btn" data-act="up" title="Вище">▲</button>
+          <button class="btn" data-act="down" title="Нижче">▼</button>
+        </span>
+      </summary>
+      <div class="form">
+        <label>Назва<input type="text" name="name" value="${esc(r.name)}"></label>
+        <div class="row">
+          <label>Ціна<input type="text" name="price" value="${esc(r.price)}" placeholder="60 грн/шт"></label>
+          <label>Вага / об'єм<input type="text" name="size" value="${esc(r.size)}" placeholder="60 мл"></label>
+        </div>
+        <label>Склад (кожен пункт з нового рядка)<textarea name="items" rows="4">${esc((r.items || []).join('\n'))}</textarea></label>
+        <label>Опис (суцільним текстом)<textarea name="text" rows="3">${esc(r.text)}</textarea></label>
+        <label>Смаки (через кому)<input type="text" name="tags" value="${esc((r.tags || []).join(', '))}"></label>
+        <label>Примітка під ціною<input type="text" name="extra" value="${esc(r.extra)}"></label>
+        <label>Фото (перше показується першим)
+          <div class="photos">
+            ${(r.photos || []).map((p, i) => `<div class="ph">
+              <img src="${esc(p)}" alt="">
+              <button class="del" data-act="photo-del" data-i="${i}" title="Видалити фото">✕</button>
+              ${i ? `<button class="first" data-act="photo-first" data-i="${i}">зробити першим</button>` : ''}
+            </div>`).join('')}
+            <label class="add-photo">+ фото<input type="file" accept="image/*" multiple data-act="photo-add"></label>
+          </div>
+        </label>
+        <label class="check"><input type="checkbox" name="hidden" ${r.hidden ? 'checked' : ''}> Приховати з сайту</label>
+        <div class="actions">
+          <button class="btn primary" data-act="save">Зберегти</button>
+          <span class="status"></span>
+          <span style="flex:1"></span>
+          <button class="btn danger" data-act="delete">Видалити</button>
+        </div>
+      </div>
+    </details>`;
+  }
+
+  const rowOf = el => rows.find(r => r.id === el.closest('.item').dataset.id);
+
+  function readForm(item) {
+    const f = n => item.querySelector(`[name="${n}"]`);
+    return {
+      name: f('name').value.trim(),
+      price: f('price').value.trim(),
+      size: f('size').value.trim(),
+      text: f('text').value.trim(),
+      extra: f('extra').value.trim(),
+      items: f('items').value.split('\n').map(s => s.trim()).filter(Boolean),
+      tags: f('tags').value.split(',').map(s => s.trim()).filter(Boolean),
+      hidden: f('hidden').checked,
+    };
+  }
+
+  async function update(r, patch) {
+    const { data, error } = await db.from('desserts').update(patch).eq('id', r.id).select().single();
+    if (error) { toast('Не збереглось: ' + error.message); return false; }
+    Object.assign(r, data);
+    return true;
+  }
+
+  // перемальовує одну картку, лишаючи її відкритою
+  function rerender(r) {
+    const old = document.querySelector(`.item[data-id="${r.id}"]`);
+    const open = old.open;
+    old.outerHTML = itemHtml(r);
+    document.querySelector(`.item[data-id="${r.id}"]`).open = open;
+  }
+
+  // ---------- фото ----------
+  // зменшує фото з телефону до 1600 px, щоб сайт вантажився швидко
+  function shrink(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 1600 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k);
+        c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(b => b ? resolve(b) : reject(new Error('не вдалося обробити фото')), 'image/jpeg', 0.85);
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = () => reject(new Error('це не схоже на фото'));
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function uploadPhotos(r, files) {
+    toast('Завантажую фото…');
+    const urls = [];
+    for (const file of files) {
+      try {
+        const blob = await shrink(file);
+        const path = `${r.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+        const { error } = await db.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg' });
+        if (error) throw error;
+        urls.push(db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl);
+      } catch (e) {
+        toast('Фото не завантажилось: ' + e.message);
+      }
+    }
+    if (urls.length && await update(r, { photos: [...(r.photos || []), ...urls] })) {
+      rerender(r);
+      toast('Фото додано');
+    }
+  }
+
+  function storagePath(url) {
+    const mark = `/storage/v1/object/public/${BUCKET}/`;
+    const i = url.indexOf(mark);
+    return i < 0 ? null : decodeURIComponent(url.slice(i + mark.length));
+  }
+
+  // ---------- події ----------
+  document.addEventListener('click', async e => {
+    const btn = e.target.closest('[data-act]');
+    if (!btn || btn.tagName === 'INPUT') return;
+    const act = btn.dataset.act;
+    if (act === 'up' || act === 'down') e.preventDefault(); // не розгортати картку
+    const r = rowOf(btn);
+    const item = btn.closest('.item');
+
+    if (act === 'save') {
+      if (await update(r, readForm(item))) {
+        rerender(r);
+        const s = document.querySelector(`.item[data-id="${r.id}"] .status`);
+        s.textContent = 'Збережено ✓';
+        setTimeout(() => s.textContent = '', 2500);
+      }
+    } else if (act === 'delete') {
+      if (!confirm(`Видалити «${r.name}»?`)) return;
+      const { error } = await db.from('desserts').delete().eq('id', r.id);
+      if (error) return toast('Не видалилось: ' + error.message);
+      const paths = (r.photos || []).map(storagePath).filter(Boolean);
+      if (paths.length) await db.storage.from(BUCKET).remove(paths);
+      rows = rows.filter(x => x !== r);
+      render();
+    } else if (act === 'photo-del') {
+      e.preventDefault();
+      const i = +btn.dataset.i;
+      const url = r.photos[i];
+      if (await update(r, { photos: r.photos.filter((_, j) => j !== i) })) {
+        const p = storagePath(url);
+        if (p) await db.storage.from(BUCKET).remove([p]);
+        rerender(r);
+      }
+    } else if (act === 'photo-first') {
+      e.preventDefault();
+      const i = +btn.dataset.i;
+      const photos = [r.photos[i], ...r.photos.filter((_, j) => j !== i)];
+      if (await update(r, { photos })) rerender(r);
+    } else if (act === 'up' || act === 'down') {
+      const list = rows.filter(x => x.category === cat);
+      const i = list.indexOf(r);
+      const other = list[act === 'up' ? i - 1 : i + 1];
+      if (!other) return;
+      const [a, b] = [r.sort, other.sort];
+      await update(r, { sort: b });
+      await update(other, { sort: a });
+      rows.sort((x, y) => x.sort - y.sort);
+      render();
+    }
+  });
+
+  document.addEventListener('change', e => {
+    if (e.target.dataset.act === 'photo-add' && e.target.files.length) {
+      uploadPhotos(rowOf(e.target), [...e.target.files]);
+    }
+  });
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+    cat = b.dataset.cat;
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+    render();
+  }));
+
+  $('#add').addEventListener('click', async () => {
+    const sort = Math.max(0, ...rows.map(r => r.sort)) + 1;
+    const { data, error } = await db.from('desserts')
+      .insert({ category: cat, name: 'Новий десерт', price: '', sort, hidden: true })
+      .select().single();
+    if (error) return toast('Не вдалося додати: ' + error.message);
+    rows.push(data);
+    render();
+    const el = document.querySelector(`.item[data-id="${data.id}"]`);
+    el.open = true;
+    el.scrollIntoView({ behavior: 'smooth' });
+    toast('Додано. Заповніть і зніміть «Приховати», коли буде готово');
+  });
+
+  if (!SUPABASE_URL) {
+    document.body.innerHTML = '<p class="wrap">Supabase ще не налаштований: заповніть config.js.</p>';
+  } else {
+    boot();
+  }
+</script>
+</body>
+</html>
