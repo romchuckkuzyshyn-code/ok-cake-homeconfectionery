@@ -302,7 +302,10 @@
     };
     const go = i => {
       sync(i);
-      el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' });
+      const left = idx * el.clientWidth;
+      el.scrollTo({ left, behavior: 'smooth' });
+      // якщо браузер не прокрутив плавно, прокручуємо одразу
+      setTimeout(() => { if (Math.abs(el.scrollLeft - left) > 2) el.scrollLeft = left; }, 700);
     };
     wrap.querySelector('.prev').addEventListener('click', () => go(idx - 1));
     wrap.querySelector('.next').addEventListener('click', () => go(idx + 1));
