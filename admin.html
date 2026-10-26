@@ -90,14 +90,18 @@
   .check { display: flex !important; align-items: center; gap: 8px; color: var(--ink) !important; }
 
   .photos { display: flex; flex-wrap: wrap; gap: 8px; }
-  .ph { position: relative; width: 96px; height: 96px; }
-  .ph img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .ph { position: relative; width: 96px; }
+  .ph img { width: 96px; height: 120px; object-fit: cover; border-radius: 10px; background: var(--chip); display: block; }
+  .ph .frame { display: flex; gap: 4px; margin-top: 4px; }
+  .ph .frame button { position: static; flex: 1; width: auto; height: 26px; border-radius: 8px; background: var(--chip); color: var(--ink); }
+  .ph .frame button.on { background: var(--accent); color: var(--accent-ink); }
+  .hint { font-size: 12px; color: var(--muted); font-weight: 500; margin: 2px 0 0; }
   .ph button {
     position: absolute; border: 0; border-radius: 50%; width: 26px; height: 26px;
     background: rgba(0,0,0,.6); color: #fff; cursor: pointer; font-size: 14px; line-height: 26px; padding: 0;
   }
   .ph .del { top: 4px; right: 4px; }
-  .ph .first { bottom: 4px; left: 4px; width: auto; border-radius: 8px; padding: 0 6px; font-size: 11px; }
+  .ph .first { top: 94px; left: 4px; width: auto; border-radius: 8px; padding: 0 6px; font-size: 11px; }
   .add-photo {
     width: 96px; height: 96px; border: 2px dashed var(--line); border-radius: 10px;
     display: flex; align-items: center; justify-content: center; text-align: center;
@@ -227,12 +231,18 @@
         <label>Фото (перше показується першим)
           <div class="photos">
             ${(r.photos || []).map((p, i) => `<div class="ph">
-              <img src="${esc(p)}" alt="">
+              <img src="${esc(p)}" alt="" style="${frameStyle(p)}">
               <button class="del" data-act="photo-del" data-i="${i}" title="Видалити фото">✕</button>
               ${i ? `<button class="first" data-act="photo-first" data-i="${i}">зробити першим</button>` : ''}
+              <div class="frame">
+                <button data-act="photo-down" data-i="${i}" title="Опустити фото (видно більше верху)">↓</button>
+                <button data-act="photo-fit" data-i="${i}" title="Показати фото повністю" class="${frame(p).fit ? 'on' : ''}">⤢</button>
+                <button data-act="photo-up" data-i="${i}" title="Підняти фото (видно більше низу)">↑</button>
+              </div>
             </div>`).join('')}
             <label class="add-photo">+ фото<input type="file" accept="image/*" multiple data-act="photo-add"></label>
           </div>
+          <p class="hint">Так фото виглядатиме на сайті. ↓ ↑ — зсунути кадр, ⤢ — показати фото повністю.</p>
         </label>
         <label class="check"><input type="checkbox" name="hidden" ${r.hidden ? 'checked' : ''}> Приховати з сайту</label>
         <div class="actions">
@@ -315,7 +325,25 @@
     }
   }
 
+  // кадрування фото зберігається в кінці адреси, як на сайті: «#fit=contain&y=20»
+  function frame(url) {
+    const p = new URLSearchParams(url.split('#')[1] || '');
+    return { fit: p.get('fit') === 'contain', y: p.has('y') ? Math.max(0, Math.min(100, +p.get('y'))) : 50 };
+  }
+  function frameStyle(url) {
+    const f = frame(url);
+    return `object-fit:${f.fit ? 'contain' : 'cover'};object-position:50% ${f.y}%`;
+  }
+  function withFrame(url, f) {
+    const p = new URLSearchParams();
+    if (f.fit) p.set('fit', 'contain');
+    if (f.y !== 50) p.set('y', f.y);
+    const base = url.split('#')[0];
+    return p.toString() ? `${base}#${p}` : base;
+  }
+
   function storagePath(url) {
+    url = url.split('#')[0];
     const mark = `/storage/v1/object/public/${BUCKET}/`;
     const i = url.indexOf(mark);
     return i < 0 ? null : decodeURIComponent(url.slice(i + mark.length));
@@ -354,6 +382,14 @@
         if (p) await db.storage.from(BUCKET).remove([p]);
         rerender(r);
       }
+    } else if (act === 'photo-fit' || act === 'photo-up' || act === 'photo-down') {
+      e.preventDefault();
+      const i = +btn.dataset.i;
+      const f = frame(r.photos[i]);
+      if (act === 'photo-fit') f.fit = !f.fit;
+      else f.y = Math.max(0, Math.min(100, f.y + (act === 'photo-up' ? 10 : -10)));
+      const photos = r.photos.map((p, j) => j === i ? withFrame(p, f) : p);
+      if (await update(r, { photos })) rerender(r);
     } else if (act === 'photo-first') {
       e.preventDefault();
       const i = +btn.dataset.i;

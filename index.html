@@ -257,9 +257,17 @@
 <script>
   const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  // Кадрування фото задається в кінці адреси: «#fit=contain» — показати фото повністю,
+  // «#y=20» — зсунути кадр (0 — верх фото, 100 — низ). Налаштовується в адмінці.
+  function frameStyle(url) {
+    const p = new URLSearchParams(url.split('#')[1] || '');
+    const y = p.has('y') ? Math.max(0, Math.min(100, +p.get('y'))) : 50;
+    return `object-fit:${p.get('fit') === 'contain' ? 'contain' : 'cover'};object-position:50% ${y}%`;
+  }
+
   function card(d) {
     const photos = d.photos.length
-      ? d.photos.map(p => `<img src="${p}" alt="${esc(d.name)}" loading="lazy">`).join('')
+      ? d.photos.map(p => `<img src="${p}" alt="${esc(d.name)}" loading="lazy" style="${frameStyle(p)}">`).join('')
       : '<span class="empty">фото незабаром</span>';
     const many = d.photos.length > 1;
     const nav = many
